@@ -7,15 +7,16 @@ export const COOKIE_NAME = "dream-user";
 
 const useCookieUser = () => {
   const setUser = useAppStore((state) => state.setUser);
+  const user = useAppStore((state) => state.user);
 
   const getCookieUser = () => {
     const maybeUser = Cookies.get(COOKIE_NAME);
-    let user: LoginOutput | null = null;
+    let appUser: LoginOutput | null = null;
     if (maybeUser) {
-      user = JSON.parse(maybeUser);
-      setUser(user as LoginOutput);
+      appUser = JSON.parse(maybeUser);
+      if (!user.token) setUser(appUser as LoginOutput);
     }
-    return user;
+    return appUser;
   };
 
   const [cookieUser, setCookieUser] = useState(getCookieUser);
