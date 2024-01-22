@@ -1,4 +1,5 @@
-type Board = Array<Array<number>>;
+export type Board = Array<Array<number | null>>;
+
 export type RegisterInput = {
   username: string;
   password: string;
@@ -6,7 +7,7 @@ export type RegisterInput = {
 
 type Status = "open" | "progress" | "finished";
 
-type ReducedUser = {
+export type ReducedUser = {
     id: number;
     username: string;
 };

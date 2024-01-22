@@ -1,6 +1,6 @@
-const ErrorComponent = ({error}: {error: string}) => {
+const ErrorComponent = ({error, isFontBig = false}: {error: string, isFontBig?: boolean}) => {
   return (
-    <span className='text-red-500'>{error}</span>
+    <span className={`text-red-500 ${isFontBig? "font-bold text-2xl" : ""}`}>{error}</span>
   )
 }
 
