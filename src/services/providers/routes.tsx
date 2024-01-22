@@ -10,7 +10,7 @@ import ProtectedRoute from "../../components/protectedRoute";
 
 export const router = createBrowserRouter([
   {
-    path: "*",
+    path: "/",
     element: <Layout />,
     children: [
       {

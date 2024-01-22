@@ -2,7 +2,7 @@ import { axiosInstance } from "./base";
 
 export const getGamesApi = async (offset: number, limit: number) => {
   return await axiosInstance
-    .get(`games/?limit=${limit}&offset=${offset * limit}/`)
+    .get(`games/?limit=${limit}&offset=${offset * limit}`)
     .then((response) => {
       return response.data;
     });
