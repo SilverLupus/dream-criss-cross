@@ -1,9 +1,27 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Logo from "../assets/logo-button.png";
 import { useState } from "react";
+import useAppStore from "../services/data/data";
+import useCookieUser from "../hooks/useCookieUser";
+import { useMutation } from "@tanstack/react-query";
+import { logoutApi } from "../services/api/auth";
+import { AxiosError, AxiosResponse } from "axios";
 
 const Navbar = () => {
   const [isNavbarOpen, setIsNavbarOpen] = useState(false);
+
+  const { removeCookieUser } = useCookieUser();
+  const user = useAppStore((state) => state.user);
+
+  const navigate = useNavigate();
+
+  const { mutate: logoutUser } = useMutation<AxiosResponse, AxiosError, void>({
+    mutationFn: () => logoutApi(),
+    onSuccess: () => {
+      removeCookieUser();
+      navigate("login");
+    },
+  });
 
   return (
     <nav
@@ -13,26 +31,29 @@ const Navbar = () => {
       <div className="flex lg:flex-1">
         <img src={Logo} alt="logo" className="w-8 h-8 hover:rotate-180 duration-300" />
       </div>
-      <div className="flex lg:hidden">
-        <button
-          type="button"
-          className="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-400"
-        >
-          <span className="sr-only">Open main menu</span>
-        </button>
-      </div>
-      <div className="hidden sm:flex lg:gap-x-12">userName</div>
+      <div className="hidden sm:flex lg:gap-x-12">{user.username}</div>
       <div className="hidden sm:flex lg:flex-1 lg:justify-end gap-x-3">
         <Link to="" className="text-sm font-semibold leading-6 text-white">
           Homepage
         </Link>
-        <Link to="login" className="text-sm font-semibold leading-6 text-white">
-          Login
-        </Link>
+        {user.id ? (
+          <>
+            <Link to="game">Game List</Link>
+            <button
+              onClick={() => logoutUser()}
+              className="text-sm font-semibold leading-6 text-white"
+            >
+              Logout
+            </button>
+          </>
+        ) : (
+          <Link to="login" className="text-sm font-semibold leading-6 text-white">
+            Login
+          </Link>
+        )}
       </div>
 
-      <button
-        type="button"
+      <div
         className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm rounded-lg sm:hidden focus:outline-none"
         onClick={() => setIsNavbarOpen((prevState) => !prevState)}
       >
@@ -64,12 +85,26 @@ const Navbar = () => {
             <Link to="" className="text-2xl font-semibold leading-6 text-white">
               Homepage
             </Link>
-            <Link to="login" className="text-2xl font-semibold leading-6 text-white">
-              Login
-            </Link>
+            {user.id ? (
+              <>
+                <Link to="game" className="text-2xl font-semibold leading-6 text-white">
+                  Game List
+                </Link>
+                <button
+                  onClick={() => logoutUser()}
+                  className="text-2xl font-semibold leading-6 text-white"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <Link to="login" className="text-2xl font-semibold leading-6 text-white">
+                Login
+              </Link>
+            )}
           </div>
         )}
-      </button>
+      </div>
     </nav>
   );
 };

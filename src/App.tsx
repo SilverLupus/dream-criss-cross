@@ -1,13 +1,15 @@
-import { RouterProvider } from "react-router-dom"
-import { router } from "./services/providers/routes"
+import { RouterProvider } from "react-router-dom";
+import { router } from "./services/providers/routes";
+import TranstackProvider from "./services/providers/TranstackProvider";
 
 function App() {
-
   return (
     <>
-      <RouterProvider router={router} />
+      <TranstackProvider>
+        <RouterProvider router={router} />
+      </TranstackProvider>
     </>
-  )
+  );
 }
 
-export default App
+export default App;

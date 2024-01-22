@@ -7,7 +7,9 @@ const Layout = () => {
       <header className="mb-16">
         <Navbar />
       </header>
-      <Outlet />
+      <main className=" h-[calc(100vh-16)]">
+        <Outlet />
+      </main>
     </div>
   );
 };

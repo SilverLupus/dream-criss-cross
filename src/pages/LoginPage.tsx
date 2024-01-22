@@ -1,10 +1,36 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useMutation } from "@tanstack/react-query";
+import { AxiosError, AxiosResponse } from "axios";
+import ErrorComponent from "../components/ErrorComponent";
+import { loginApi } from "../services/api/auth";
+import useCookieUser from "../hooks/useCookieUser";
 
 const LoginPage = () => {
+  const [userName, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  
+  const {setCookieUser} = useCookieUser();
+  const navigate = useNavigate();
+
+  const { mutate: loginUser } = useMutation<AxiosResponse, AxiosError, void>({
+    mutationFn: () => loginApi(userName, password),
+    onSuccess: (data) => {
+      setCookieUser(data.data)
+      navigate("../game")
+    },
+    onError: (error) => setError((error.response as AxiosResponse).data?.errors[0]?.message),
+  });
+
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    loginUser();
+  };
+
   return (
     <>
-      <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
+      <div className="flex flex-1 flex-col justify-center px-6 py-12 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-sm">
           <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">
             Log in to your account
@@ -12,16 +38,17 @@ const LoginPage = () => {
         </div>
 
         <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-          <form className="space-y-6" action="#" method="POST">
+          <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
-              <label htmlFor="email" className="block font-medium leading-6 text-gray-900">
+              <label htmlFor="userName" className="block font-medium leading-6 text-gray-900">
                 Username
               </label>
               <div className="mt-2">
                 <input
-                  id="email"
-                  name="email"
-                  type="email"
+                  value={userName}
+                  onChange={(e) => setUsername(e.target.value)}
+                  id="userName"
+                  name="userName"
                   required
                   className="block w-full rounded-md border-0 py-1.5 px-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 sm:text-sm sm:leading-6"
                 />
@@ -37,6 +64,8 @@ const LoginPage = () => {
               </label>
               <div className="mt-2">
                 <input
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   id="password"
                   name="password"
                   type="password"
@@ -45,6 +74,8 @@ const LoginPage = () => {
                 />
               </div>
             </div>
+            
+            {error && <ErrorComponent error={error} />}
 
             <div>
               <button
