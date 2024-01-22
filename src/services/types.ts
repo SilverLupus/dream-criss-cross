@@ -5,7 +5,7 @@ export type RegisterInput = {
   password: string;
 };
 
-type Status = "open" | "progress" | "finished";
+export type GameStatus = "open" | "progress" | "finished";
 
 export type ReducedUser = {
     id: number;
@@ -23,7 +23,7 @@ export type Game = {
   first_player: ReducedUser;
   second_player: ReducedUser | null;
   created: string;
-  status: Status;
+  status: GameStatus;
 };
 
 export type PaginateGameList = {

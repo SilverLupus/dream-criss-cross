@@ -7,17 +7,20 @@ import LoadingIndicator from "../components/LoadingIndicator";
 import ErrorComponent from "../components/ErrorComponent";
 import { formatDate } from "../utils/helpers";
 import GamePreview from "../components/GamePreview";
+import { useNavigate } from "react-router-dom";
 
 const GAMES_PER_PAGE = 12;
 
 const GameListPage = () => {
   const [currentPage, setCurrentPage] = useState(0);
 
-  const { status, data: GameListData } = useQuery<PaginateGameList, Error>({
-    queryKey: ["getGmameList", currentPage, GAMES_PER_PAGE],
+  const navigate = useNavigate()
+
+  const { status, data: gameListData } = useQuery<PaginateGameList, Error>({
+    queryKey: ["getGameList", currentPage, GAMES_PER_PAGE],
     queryFn: () => getGamesApi(currentPage, GAMES_PER_PAGE),
   });
-
+  console.log(gameListData)
   if (status === "pending") return <LoadingIndicator />;
 
   if (status === "error")
@@ -36,13 +39,23 @@ const GameListPage = () => {
     setCurrentPage(event.selected + 1);
   };
 
+  const newGame = () => {
+    console.log("new game")
+  }
+
   return (
     <div className="mx-auto py-10 px-8 sm:px-5 xl:px-0 xl:max-w-6xl">
+      <div className="flex items-center justify-center mb-5">
+        <button onClick={newGame} className="flex w-fit justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500">
+          New Game
+        </button>
+      </div>
       <ul role="list" className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {GameListData.results.map((game: Game) => (
+        {gameListData.results.map((game: Game) => (
           <li
             key={game.id}
-            className="col-span-1 divide-y divide-gray-200 rounded-lg bg-white shadow-xl hover:bg-gray-100 cursor-pointer"
+            onClick={() =>navigate(`../game/${game.id}`)}
+            className="col-span-1 divide-y divide-gray-200 rounded-lg bg-white shadow-xl hover:bg-gray-200 cursor-pointer"
           >
             <div className="flex w-full items-center justify-between space-x-6 p-6">
               <div className="flex-1 truncate">
@@ -76,7 +89,7 @@ const GameListPage = () => {
                 </div>
                 <div className="-ml-px flex w-0 flex-1">
                   <span className="relative inline-flex w-0 flex-1 items-center justify-center gap-x-3 rounded-br-lg border border-transparent py-1 text-sm font-semibold text-gray-900 uppercase">
-                    {game.status}
+                    {game.status}{game.id}
                   </span>
                 </div>
               </div>
@@ -91,7 +104,7 @@ const GameListPage = () => {
           breakLabel="..."
           onPageChange={handleClick}
           pageRangeDisplayed={5}
-          pageCount={Math.ceil(GameListData.count / GAMES_PER_PAGE)}
+          pageCount={Math.ceil(gameListData.count / GAMES_PER_PAGE)}
           renderOnZeroPageCount={null}
           containerClassName="h-5 w-fit flex items-center justify-center flex-row px-5 relative text-blue-800"
           pageClassName="flex items-center justify-center h-7 w-7 font-bold p-2"
