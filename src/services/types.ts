@@ -8,13 +8,13 @@ export type RegisterInput = {
 export type GameStatus = "open" | "progress" | "finished";
 
 export type ReducedUser = {
-    id: number;
-    username: string;
+  id: number;
+  username: string;
 };
 
 export type LoginOutput = ReducedUser & {
-    token: string;
-}
+  token: string;
+};
 
 export type Game = {
   id: number;
@@ -31,4 +31,9 @@ export type PaginateGameList = {
   previous: string;
   next: string;
   results: Array<Game>;
+};
+
+export type MakeMove = {
+  row: number;
+  col: number;
 };

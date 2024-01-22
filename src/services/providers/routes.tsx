@@ -6,6 +6,7 @@ import NotFoundPage from "../../pages/NotFoundPage";
 import GameListPage from "../../pages/GameListPage";
 import Layout from "../../components/Layout";
 import HomePage from "../../pages/HomePage";
+import ProtectedRoute from "../../components/protectedRoute";
 
 export const router = createBrowserRouter([
   {
@@ -25,13 +26,19 @@ export const router = createBrowserRouter([
         element: <RegisterPage />,
       },
       {
-        path: "game",
-        element: <GameListPage />,
+        element: <ProtectedRoute />,
+        children: [
+          {
+            path: "game",
+            element: <GameListPage />,
+          },
+          {
+            path: "game/:gameId",
+            element: <GamePage />,
+          },
+        ],
       },
-      {
-        path: "game/:gameId",
-        element: <GamePage />,
-      },
+
       {
         path: "*",
         element: <NotFoundPage />,

@@ -2,23 +2,28 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { AxiosError, AxiosResponse } from "axios";
-import ErrorComponent from "../components/ErrorComponent";
+import ErrorPreview from "../components/ErrorPreview";
 import { loginApi } from "../services/api/auth";
 import useCookieUser from "../hooks/useCookieUser";
+import { LoginOutput } from "../services/types";
 
 const LoginPage = () => {
   const [userName, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  
-  const {setCookieUser} = useCookieUser();
+
+  const { setCookieUser } = useCookieUser();
   const navigate = useNavigate();
 
-  const { mutate: loginUser } = useMutation<AxiosResponse, AxiosError, void>({
+  const { mutate: loginUser, isPending } = useMutation<
+    AxiosResponse<LoginOutput>,
+    AxiosError,
+    void
+  >({
     mutationFn: () => loginApi(userName, password),
     onSuccess: (data) => {
-      setCookieUser(data.data)
-      navigate("../game")
+      setCookieUser(data.data);
+      navigate("../game");
     },
     onError: (error) => setError((error.response as AxiosResponse).data?.errors[0]?.message),
   });
@@ -56,10 +61,7 @@ const LoginPage = () => {
             </div>
 
             <div>
-              <label
-                htmlFor="password"
-                className="block font-medium leading-6 text-gray-900"
-              >
+              <label htmlFor="password" className="block font-medium leading-6 text-gray-900">
                 Password
               </label>
               <div className="mt-2">
@@ -74,21 +76,27 @@ const LoginPage = () => {
                 />
               </div>
             </div>
-            
-            {error && <ErrorComponent error={error} />}
+
+            {error && <ErrorPreview error={error} />}
 
             <div>
               <button
                 type="submit"
-                className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500"
+                disabled={isPending}
+                className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 disabled:bg-gray-500"
               >
-                Sign in
+                Login{" "}
               </button>
             </div>
           </form>
           <p className="mt-10 text-center text-sm text-gray-500">
-           Don't have account?{" "}
-           <Link to="../register" className="font-semibold leading-6 text-indigo-600 hover:text-indigo-500">Register now</Link>
+            Don't have account?{" "}
+            <Link
+              to="../register"
+              className="font-semibold leading-6 text-indigo-600 hover:text-indigo-500"
+            >
+              Register now
+            </Link>
           </p>
         </div>
       </div>

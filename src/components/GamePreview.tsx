@@ -6,6 +6,7 @@ type GamePreviewProps = {
   isPlayable?: boolean;
   winner?: ReducedUser | null;
   gameStatus?: GameStatus;
+  makeMove? : ({row, col}:{row:number, col: number}) => void
 };
 
 const GamePreview = ({
@@ -13,8 +14,9 @@ const GamePreview = ({
   firstPlayerId,
   isPlayable = false,
   winner,
-  gameStatus,
+  gameStatus,makeMove
 }: GamePreviewProps) => {
+  
   const displaySymbol = (userId: number | null) => {
     if (userId === null)
       return (
@@ -33,10 +35,9 @@ const GamePreview = ({
     );
   };
 
-  const handleBoardClick = (rowId: number, colId: number) => {
-    if (isPlayable && board[rowId][colId] === null && winner !== null) {
-      console.log(rowId);
-      console.log(colId);
+  const handleBoardClick = (row: number, col: number) => {
+    if (isPlayable && board[row][col] === null && winner === null && makeMove) {
+      makeMove({row, col});
     }
   };
 

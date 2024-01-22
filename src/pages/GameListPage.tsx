@@ -1,32 +1,40 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import ReactPaginate from "react-paginate";
 import { Game, PaginateGameList, ReducedUser } from "../services/types";
-import { getGamesApi } from "../services/api/data";
+import { getGamesApi, makeNewGamesApi } from "../services/api/game";
 import LoadingIndicator from "../components/LoadingIndicator";
-import ErrorComponent from "../components/ErrorComponent";
+import ErrorPreview from "../components/ErrorPreview";
 import { formatDate } from "../utils/helpers";
 import GamePreview from "../components/GamePreview";
 import { useNavigate } from "react-router-dom";
+import { AxiosError, AxiosResponse } from "axios";
 
 const GAMES_PER_PAGE = 12;
 
 const GameListPage = () => {
   const [currentPage, setCurrentPage] = useState(0);
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const { status, data: gameListData } = useQuery<PaginateGameList, Error>({
     queryKey: ["getGameList", currentPage, GAMES_PER_PAGE],
     queryFn: () => getGamesApi(currentPage, GAMES_PER_PAGE),
   });
-  console.log(gameListData)
+
+  const { mutate: makeNewGame, isPending } = useMutation<AxiosResponse<Game>, AxiosError, void>({
+    mutationFn: () => makeNewGamesApi(),
+    onSuccess: (data) => {
+      navigate(`../game/${data.data.id}`);
+    },
+  });
+
   if (status === "pending") return <LoadingIndicator />;
 
   if (status === "error")
     return (
       <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
-        <ErrorComponent error="Error has occured" isFontBig={true} />
+        <ErrorPreview error="Error has occured" isFontBig={true} />
       </div>
     );
 
@@ -36,17 +44,17 @@ const GameListPage = () => {
   };
 
   const handleClick = (event: { selected: number }) => {
-    setCurrentPage(event.selected + 1);
+    setCurrentPage(event.selected);
   };
-
-  const newGame = () => {
-    console.log("new game")
-  }
 
   return (
     <div className="mx-auto py-10 px-8 sm:px-5 xl:px-0 xl:max-w-6xl">
       <div className="flex items-center justify-center mb-5">
-        <button onClick={newGame} className="flex w-fit justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500">
+        <button
+          onClick={() => makeNewGame()}
+          disabled={isPending}
+          className="flex w-fit justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 disabled:bg-gray-500"
+        >
           New Game
         </button>
       </div>
@@ -54,7 +62,7 @@ const GameListPage = () => {
         {gameListData.results.map((game: Game) => (
           <li
             key={game.id}
-            onClick={() =>navigate(`../game/${game.id}`)}
+            onClick={() => navigate(`../game/${game.id}`)}
             className="col-span-1 divide-y divide-gray-200 rounded-lg bg-white shadow-xl hover:bg-gray-200 cursor-pointer"
           >
             <div className="flex w-full items-center justify-between space-x-6 p-6">
@@ -89,7 +97,7 @@ const GameListPage = () => {
                 </div>
                 <div className="-ml-px flex w-0 flex-1">
                   <span className="relative inline-flex w-0 flex-1 items-center justify-center gap-x-3 rounded-br-lg border border-transparent py-1 text-sm font-semibold text-gray-900 uppercase">
-                    {game.status}{game.id}
+                    {game.status}
                   </span>
                 </div>
               </div>
@@ -99,7 +107,7 @@ const GameListPage = () => {
       </ul>
       <div className="flex flex-col justify-center items-center p-3 w-full h-full mt-5">
         <ReactPaginate
-          // initialPage={currentPage}
+          initialPage={currentPage}
           activeClassName="flex items-center justify-center border-2 h-5 w-5 text-blue-500 border-gray-300 rounded"
           breakLabel="..."
           onPageChange={handleClick}

@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import ErrorComponent from "../components/ErrorComponent";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { AxiosError, AxiosResponse } from "axios";
+import ErrorPreview from "../components/ErrorPreview";
 import LoadingIndicator from "../components/LoadingIndicator";
-import { getSpecificGamesApi } from "../services/api/data";
-import { Game } from "../services/types";
+import { getSpecificGamesApi, joinGamesApi, makeMoveGamesApi } from "../services/api/game";
+import { Game, MakeMove } from "../services/types";
 import GamePreview from "../components/GamePreview";
 import useAppStore from "../services/data/data";
 
@@ -14,31 +15,55 @@ const GamePage = () => {
   const { gameId } = useParams();
   const [refetchInterval, setRefetchInterval] = useState(REFETCH_GAME_INTERVAL);
   const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
   const user = useAppStore((store) => store.user);
 
-  const { status, data: gameData } = useQuery<Game, Error>({
+  const {
+    status,
+    data: gameData,
+    refetch,
+  } = useQuery<Game, Error>({
     queryKey: ["getSpecificGame", gameId],
     queryFn: () => (gameId ? getSpecificGamesApi(gameId) : Promise.reject("gameId is undefined")),
-    // refetchInterval: refetchInterval
+    refetchInterval: refetchInterval,
+  });
+
+  const { mutate: joinGame } = useMutation<AxiosResponse, AxiosError, void>({
+    mutationFn: () => (gameId ? joinGamesApi(gameId) : Promise.reject("gameId is undefined")),
+    onSuccess: () => {
+      refetch();
+    },
+  });
+
+  const { mutate: makeMove } = useMutation<AxiosResponse, AxiosError, MakeMove>({
+    mutationFn: ({ row, col }) => makeMoveGamesApi(gameId, row, col),
+    onSuccess: () => {
+      refetch();
+    },
+    onError: (error) => setError((error.response as AxiosResponse).data?.errors[0]?.message),
   });
 
   useEffect(() => {
-    if (gameData?.winner && gameData.status === "finished") {
+    if (gameData?.status === "finished") {
       setRefetchInterval(0);
-      gameData.winner.id === user.id
-        ? setMessage("You are winner!")
-        : setMessage(`Player ${gameData.winner.username} is the winner`);
+      if (gameData?.winner) {
+        gameData.winner.id === user.id
+          ? setMessage("You are winner!")
+          : setMessage(`Player ${gameData.winner.username} is the winner`);
+      } else setMessage("Draw!");
     }
   }, [gameData, user]);
 
-  console.log(gameData);
+  useEffect(() => {
+    setTimeout(() => setError(""), 4000);
+  }, [error]);
 
   if (status === "pending") return <LoadingIndicator />;
 
   if (status === "error")
     return (
       <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
-        <ErrorComponent error="Error has occured" isFontBig={true} />
+        <ErrorPreview error="Error has occured" isFontBig={true} />
       </div>
     );
 
@@ -69,17 +94,24 @@ const GamePage = () => {
         isPlayable={true}
         winner={gameData.winner}
         gameStatus={gameData.status}
+        makeMove={makeMove}
       />
 
-      {!gameData.second_player && (
+      {!gameData.second_player && gameData.first_player.id !== user.id && (
         <div>
-          <button className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500">
+          <button
+            onClick={() => joinGame()}
+            className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500"
+          >
             Join Game
           </button>
         </div>
       )}
 
-      {message && <div className="text-green-600 text-3xl font-semibold">{message} </div>}
+      {message && (
+        <div className="text-green-600 text-3xl font-semibold text-center">{message} </div>
+      )}
+      {error && <ErrorPreview error={error} isFontBig={true} />}
     </div>
   );
 };

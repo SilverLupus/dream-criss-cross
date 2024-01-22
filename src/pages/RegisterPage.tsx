@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { registerApi } from "../services/api/auth";
-import ErrorComponent from "../components/ErrorComponent";
+import ErrorPreview from "../components/ErrorPreview";
 import { AxiosError, AxiosResponse } from "axios";
 import { useNavigate } from "react-router-dom";
 
@@ -16,7 +16,7 @@ const RegisterPage = () => {
 
   const navigate = useNavigate();
 
-  const { mutate: registerUser } = useMutation<AxiosResponse, AxiosError, void>({
+  const { mutate: registerUser, isPending } = useMutation<AxiosResponse, AxiosError, void>({
     mutationFn: () => registerApi(userName, password),
     onSuccess: () => navigate("../login"),
     onError: (error) => setServerError((error.response as AxiosResponse).data?.errors[0]?.message),
@@ -74,7 +74,7 @@ const RegisterPage = () => {
                   className="block w-full rounded-md border-0 py-1.5 px-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 sm:text-sm sm:leading-6"
                 />
               </div>
-              {serverError && <ErrorComponent error={serverError} />}
+              {serverError && <ErrorPreview error={serverError} />}
             </div>
 
             <div>
@@ -92,7 +92,7 @@ const RegisterPage = () => {
                   className="block w-full rounded-md border-0 py-1.5 px-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 sm:text-sm sm:leading-6"
                 />
               </div>
-              {clientError.password && <ErrorComponent error={clientError.password} />}
+              {clientError.password && <ErrorPreview error={clientError.password} />}
             </div>
 
             <div>
@@ -110,15 +110,16 @@ const RegisterPage = () => {
                   className="block w-full rounded-md border-0 py-1.5 px-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 sm:text-sm sm:leading-6"
                 />
               </div>
-              {clientError.confirmPassword && <ErrorComponent error={clientError.confirmPassword} />}
+              {clientError.confirmPassword && <ErrorPreview error={clientError.confirmPassword} />}
             </div>
 
             <div>
               <button
+                disabled={isPending}
                 type="submit"
-                className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500"
+                className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 disabled:bg-gray-500"
               >
-                Sign in
+                Register
               </button>
             </div>
           </form>
